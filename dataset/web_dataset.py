@@ -15,6 +15,7 @@ def load_json_data(list_of_json_path):
     """
     data = []
     for json_path in list_of_json_path:
+        print(f"Loading data from {list_of_json_path}")
         with open(json_path, 'r') as f:
             # data = json.load(f)
             data.extend([json.loads(line) for line in f if line.strip()])
@@ -43,6 +44,7 @@ def collate_fn(batch_data):
     return {'input_ids': input_ids}
 
 def create_dataloader(list_of_json_path, tokenizer, batch_size=32, shuffle=True):
+    list_of_json_path = list_of_json_path[:2]
     dataset = TextDatset(list_of_json_path, tokenizer)
     train_set, val_set = torch.utils.data.random_split(dataset, [0.95, 0.05])
 
@@ -50,11 +52,13 @@ def create_dataloader(list_of_json_path, tokenizer, batch_size=32, shuffle=True)
         train_set,
         batch_size=batch_size,
         shuffle=shuffle,
+        num_workers=16,
         collate_fn=collate_fn
     )
     val_loader = torch.utils.data.DataLoader(
         val_set,
         batch_size=batch_size,
+        num_workers=16,
         shuffle=True,
         collate_fn=collate_fn
     )
@@ -66,7 +70,8 @@ def create_dataloader(list_of_json_path, tokenizer, batch_size=32, shuffle=True)
 if __name__ == "__main__":
     from transformers import AutoTokenizer
     root = "/home/mamba/ML_project/Testing/Huy/joint_vlm/mamba_moelm/data/openweb_json/split"
-    json_list = os.listdir(root)
+    json_list = os.listdir(root)[:2]
+    # print(json_list)
     json_list = [os.path.join(root, json) for json in json_list]
     tokenizer = AutoTokenizer.from_pretrained("/home/mamba/ML_project/Testing/Huy/joint_vlm/mamba_moelm/gpt_tokenizer")
     loader = create_dataloader(json_list, tokenizer, batch_size=2)

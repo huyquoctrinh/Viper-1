@@ -1,0 +1,9 @@
+{
+    "num_layers": 8,
+    "vocab_size": 50277,
+    "hidden_size": 1024,
+    "dimension": 512,
+    "expand": 4,
+    "num_experts": 4,
+    "num_tokens": 50277,
+}

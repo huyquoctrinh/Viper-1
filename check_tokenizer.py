@@ -1,7 +1,7 @@
 from transformers import AutoTokenizer
 
-tokenizer = AutoTokenizer.from_pretrained("/home/mamba/ML_project/Testing/Huy/joint_vlm/mamba_moelm/gpt_tokenizer")
-# tokenizer.save_pretrained("./gpt_tokenizer")
+tokenizer = AutoTokenizer.from_pretrained("EleutherAI/gpt-neox-20b")
+tokenizer.save_pretrained("./gpt_tokenizer")
 
-tokens = "<|endoftext|>"
-print(tokenizer.encode(tokens))
+# tokens = "<|endoftext|>"
+# print(tokenizer.encode(tokens))
