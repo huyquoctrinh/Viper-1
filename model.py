@@ -7,6 +7,8 @@ from module import process_multimodal_input_ids
 from module import ResidualFFNProjector
 from constant.token_no import IMAGE_TOKEN
 from transformers.image_utils import load_image
+import os 
+
 class ViperVL(nn.Module):
     def __init__(self, model_name, vision_ckpt_path, stage = 1):
         super(ViperVL, self).__init__()
@@ -19,8 +21,28 @@ class ViperVL(nn.Module):
         )
         if stage == 1:
             self.lm_model.eval()
+            for param in self.lm_model.parameters():
+                param.requires_grad = False
         else:
             self.lm_model.train()
+
+    def save_model(self, path):
+        if not os.path.exists(path):
+            os.makedirs(path)
+        self.lm_model.save_pretrained(path + "/lm_model/")
+        # torch.save(self.lm_model.state_dict(), f"{path}/lm_model.pth")
+        torch.save(self.vision_encoder.state_dict(), f"{path}/vision_encoder.pth")
+        torch.save(self.projector.state_dict(), f"{path}/projector.pth")
+
+    def load_model(self, path, device="cuda"):
+        # self.lm_model = MambaModel.from_pretrained(path + "/lm_model")
+        self.lm_model.load_state_dict(torch.load(f"{path}/lm_model.pth"))
+        self.vision_encoder.load_state_dict(torch.load(f"{path}/vision_encoder.pth"))
+        self.projector.load_state_dict(torch.load(f"{path}/projector.pth"))
+        self.lm_model.eval()
+        self.lm_model = self.lm_model.to(device).half()
+        self.vision_encoder = self.vision_encoder.to(device)
+        self.projector = self.projector.to(device)
 
     def forward(self, image, token_ids):
         # Process image

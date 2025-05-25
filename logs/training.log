@@ -1,0 +1,2 @@
+2025-05-25 22:40:08,223 - INFO - Epoch [1/10], Loss: 0.0001, Validation Perplexity: 1.6577
+2025-05-25 22:40:14,754 - INFO - Epoch [2/10], Loss: 0.0001, Validation Perplexity: 1.5839

@@ -14,6 +14,7 @@ class VisionEncoder(nn.Module):
 
     def forward(self, x):
         with torch.no_grad():
+            # print("Vision shape:", x.shape)
             image_embeddings = self.model.get_image_features(x)
         return image_embeddings
 
