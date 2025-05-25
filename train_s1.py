@@ -30,9 +30,9 @@ def eval(
     cnt = 0
     with torch.no_grad():
         for batch in tqdm(val_dataloader, desc="Evaluating", unit="batch"):
-            cnt+=1
-            if cnt == 3:
-                break
+            # cnt+=1
+            # if cnt == 3:
+                # break
             input_ids = batch["input_ids"].to(device)
             images = batch["pixel_values"].to(device)
             outputs = model(token_ids=input_ids, image=images)
@@ -59,9 +59,9 @@ def train(
         cnt = 0
         print(f"Trainable parameters: {count_trainable_parameters(model)}")
         for batch in progress_bar:
-            cnt += 1
-            if cnt == 3:
-                break
+            # cnt += 1
+            # if cnt == 3:
+                # break
             input_ids = batch["input_ids"].to(device)
             images = batch["pixel_values"].to(device)
             optimizer.zero_grad()
@@ -102,8 +102,8 @@ if __name__ == "__main__":
         json_path="/home/mamba/ML_project/Testing/Huy/joint_vlm/dataset/cc_3m/chat.json",
         tokenizer=tokenizer,
         processor=processor,
-        batch_size=4,
-        num_workers=4
+        batch_size=16,
+        num_workers=16
     )
 
     train_dataloader = dataloaders["train_dataloader"]

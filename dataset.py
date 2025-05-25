@@ -3,8 +3,10 @@ import torch
 from torch.utils.data import Dataset
 from transformers import AutoTokenizer
 from transformers import AutoModel, AutoProcessor
+from torch.utils.data.distributed import DistributedSampler
 from transformers.image_utils import load_image
 from PIL import Image
+
 
 PADDING_INDEX = 0
 
@@ -79,7 +81,10 @@ def create_dataloader(
     tokenizer,
     processor,
     batch_size = 32,
-    num_workers = 4
+    num_workers = 4,
+    ddp = False,
+    rank = 0,
+    world_size = 1
 ):
 
     dataset = CCDataset(
@@ -94,10 +99,25 @@ def create_dataloader(
         [0.95, 0.05]
     )
     
+    if ddp:
+        train_sampler = DistributedSampler(train_set)
+    else:
+        train_sampler = None
+
+    # train_dataloader = torch.utils.data.DataLoader(
+    #     train_set,
+    #     batch_size=batch_size,
+    #     shuffle=True,
+    #     collate_fn=collate_fn,
+    #     num_workers=num_workers,
+    #     pin_memory=True
+    # )
+
     train_dataloader = torch.utils.data.DataLoader(
         train_set,
         batch_size=batch_size,
-        shuffle=True,
+        shuffle=(train_sampler is None),
+        sampler=train_sampler,
         collate_fn=collate_fn,
         num_workers=num_workers,
         pin_memory=True
