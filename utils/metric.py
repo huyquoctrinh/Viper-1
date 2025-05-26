@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
 def perplexity(logits, labels):
     """
     Calculate the perplexity of the model's predictions.

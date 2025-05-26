@@ -11,7 +11,7 @@ from tqdm import tqdm
 import torch.nn as nn 
 from transformers import AutoProcessor, AutoTokenizer
 from model import ViperVL
-from metric import perplexity
+from utils.metric import perplexity
 import logging
 
 

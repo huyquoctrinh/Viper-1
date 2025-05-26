@@ -1,18 +1,18 @@
-import torch
-from dataset import create_dataloader
-from moe_lm.mamba_model import MambaModel
+import argparse
+import logging
+import os
+
 from tqdm import tqdm
+import torch
 import torch.nn as nn 
 from transformers import AutoProcessor, AutoTokenizer
-from model import ViperVL
-from metric import perplexity
-import logging
+from dataset import create_dataloader
 
-logging.basicConfig(
-    filename='logs/training.log',
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
+from model import ViperVL
+from utils.metric import perplexity
+from utils.misc import read_yaml_as_dict
+from moe_lm.mamba_model import MambaModel
+
 
 def count_trainable_parameters(model):
     """
@@ -86,20 +86,57 @@ def train(
         model.save_model(f"results/epoch_{epoch+1}")
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Train ViperVL model")
+    
+    parser.add_argument(
+        "--config",
+        type=str,
+        default="configs/huy.yml",
+        help="Path to the configuration YAML file"
+    )
+    args = parser.parse_args()
+    
+    config = read_yaml_as_dict(args.config)
+    
+    # logging configuration
+    logs_config = config.get("logging", {})
+    logs_path = logs_config.get("filename", "logs/training.log")
+    
+    # model configuration
+    model_config = config.get("model", {})
+    model_name = model_config.get("model_name", "viper-vlm")
+    vision_ckpt_path = model_config.get("ckpt_path", "pretrained/vision_siglip")
+    tokenizer_path = model_config.get("tokenizer", "viper_tokenier")
+    stage = model_config.get("stage", 1)
+    
+    # dataset configs
+    dataset_config = config.get("dataset", {})
+    image_path = dataset_config.get("image_path", "/home/mamba/ML_project/Testing/Huy/joint_vlm/dataset/cc_3m/images")
+    json_path = dataset_config.get("json_path", "/home/mamba/ML_project/Testing/Huy/joint_vlm/dataset/cc_3m/chat.json")
+    
+    logs_dir = os.path.dirname(logs_path)
+    os.makedirs(logs_dir, exist_ok=True) # make sure logs directory exists
+    
+    logging.basicConfig(
+        filename=logs_path,
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s'
+    )
+    
     # Initialize model, processor, and tokenizer
     model = ViperVL(
-        model_name="/home/mamba/ML_project/Testing/Huy/joint_vlm/viper-vlm/pretrained/mamba-1.5b",
-        vision_ckpt_path="/home/mamba/ML_project/Testing/Huy/joint_vlm/viper-vlm/pretrained/vision_siglip",
-        stage=1
+        model_name=model_name,
+        vision_ckpt_path=vision_ckpt_path,
+        stage=stage
     ).cuda()
 
-    processor = AutoProcessor.from_pretrained("/home/mamba/ML_project/Testing/Huy/joint_vlm/viper-vlm/pretrained/vision_siglip")
-    tokenizer = AutoTokenizer.from_pretrained("/home/mamba/ML_project/Testing/Huy/joint_vlm/viper_tokenier")
+    processor = AutoProcessor.from_pretrained(vision_ckpt_path)
+    tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
 
     # Create dataloaders
     dataloaders = create_dataloader(
-        image_path="/home/mamba/ML_project/Testing/Huy/joint_vlm/dataset/cc_3m/images",
-        json_path="/home/mamba/ML_project/Testing/Huy/joint_vlm/dataset/cc_3m/chat.json",
+        image_path=image_path,
+        json_path=json_path,
         tokenizer=tokenizer,
         processor=processor,
         batch_size=16,
