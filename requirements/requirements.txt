@@ -1,0 +1,6 @@
+pyyaml<=6.0.2
+torch
+datasets==2.14.5
+tqdm==4.66.1
+transformers<=4.52.3
+pillow<=11.2.1
