@@ -75,8 +75,8 @@ class MambaModel(nn.Module):
         self.parallel_output = parallel_output
         self.share_embeddings_and_output_weights = share_embeddings_and_output_weights
         
-        if self.pre_process:
-            self.embedding = nn.Embedding(self.config.vocab_size, self.config.hidden_size)
+        # if self.pre_process:
+        self.embedding = nn.Embedding(self.config.vocab_size, self.config.hidden_size)
 
 
         self.decoder = MambaDecoder(
@@ -98,7 +98,23 @@ class MambaModel(nn.Module):
                 **(initializer_cfg if initializer_cfg is not None else {}),
             )
         )
-        
+
+    def resize_token_embeddings(self, num_new_tokens):
+        old_num_tokens, old_embedding_dim = self.embedding.weight.shape
+        new_embeddings = nn.Embedding(
+            old_num_tokens + num_new_tokens, old_embedding_dim
+        )
+
+        new_embeddings.to(
+            self.embedding.weight.device,
+            dtype=self.embedding.weight.dtype,
+        )
+
+        new_embeddings.weight.data[:old_num_tokens, :] = self.embedding.weight.data[
+            :old_num_tokens, :
+        ]
+        self.embedding = new_embeddings
+    
     def initialize_last_stage_with_word_embeddings(self):
         with torch.no_grad():
             self.output_layer.weight = self.embedding.weight
